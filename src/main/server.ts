@@ -5,7 +5,7 @@ import { env } from '../shared/config/env.config.js';
 import { logger } from '../shared/logger/logger.js';
 
 import { createApp } from './app.js';
-import { controllers } from './container.js';
+import { controllers, middlewares } from './container.js';
 
 let server: Server | null = null;
 
@@ -15,7 +15,7 @@ async function startServer(): Promise<void> {
     await connectDatabase();
 
     // Create Express app
-    const app = createApp(controllers);
+    const app = createApp(controllers, middlewares);
 
     // Start HTTP server
     server = app.listen(env.PORT, env.HOST, () => {

@@ -1,4 +1,5 @@
-import { Router } from 'express';
+import type { RequestHandler, Router } from 'express';
+import { Router as createRouter } from 'express';
 
 import type { HealthController } from '../controllers/health.controller.js';
 import type { UserController } from '../controllers/user.controller.js';
@@ -11,11 +12,15 @@ export interface Controllers {
   userController: UserController;
 }
 
-export function createRouter(controllers: Controllers): Router {
-  const router = Router();
+export interface Middlewares {
+  authMiddleware: RequestHandler;
+}
+
+export function createAppRouter(controllers: Controllers, middlewares: Middlewares): Router {
+  const router = createRouter();
 
   router.use('/health', createHealthRoutes(controllers.healthController));
-  router.use('/users', createUserRoutes(controllers.userController));
+  router.use('/users', createUserRoutes(controllers.userController, middlewares.authMiddleware));
 
   return router;
 }

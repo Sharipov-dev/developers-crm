@@ -1,29 +1,34 @@
 import { z } from 'zod';
 
-export const createUserSchema = z.object({
+export const registerUserSchema = z.object({
+  email: z.string().email('Invalid email format').max(255, 'Email must be at most 255 characters'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  displayName: z.string().max(80, 'Display name must be at most 80 characters').optional(),
+});
+
+export const loginUserSchema = z.object({
   email: z.string().email('Invalid email format'),
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be at most 100 characters'),
+  password: z.string().min(1, 'Password is required'),
 });
 
-export const updateUserSchema = z.object({
-  email: z.string().email('Invalid email format').optional(),
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be at most 100 characters').optional(),
-}).refine((data) => data.email !== undefined || data.name !== undefined, {
-  message: 'At least one field must be provided',
+export const updateProfileSchema = z.object({
+  displayName: z.string().max(80, 'Display name must be at most 80 characters').optional(),
 });
 
-export const userIdParamSchema = z.object({
-  id: z.string().uuid('Invalid user ID format'),
-});
-
-export type CreateUserDto = z.infer<typeof createUserSchema>;
-export type UpdateUserDto = z.infer<typeof updateUserSchema>;
-export type UserIdParam = z.infer<typeof userIdParamSchema>;
+export type RegisterUserDto = z.infer<typeof registerUserSchema>;
+export type LoginUserDto = z.infer<typeof loginUserSchema>;
+export type UpdateProfileDto = z.infer<typeof updateProfileSchema>;
 
 export interface UserResponseDto {
   id: string;
   email: string;
-  name: string;
+  displayName: string | null;
+  status: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface LoginResponseDto {
+  accessToken: string;
+  user: UserResponseDto;
 }

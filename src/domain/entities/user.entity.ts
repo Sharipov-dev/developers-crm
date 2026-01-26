@@ -1,17 +1,21 @@
+export type UserStatus = 'active' | 'disabled';
+
 export interface User {
   id: string;
   email: string;
-  name: string;
+  passwordHash: string;
+  displayName: string | null;
+  status: UserStatus;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface CreateUserData {
   email: string;
-  name: string;
+  passwordHash: string;
+  displayName?: string | undefined;
 }
 
 export interface UpdateUserData {
-  email?: string | undefined;
-  name?: string | undefined;
+  displayName?: string | undefined;
 }

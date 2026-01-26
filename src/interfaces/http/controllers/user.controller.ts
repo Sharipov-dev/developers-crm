@@ -1,19 +1,21 @@
 import type { Request, Response } from 'express';
 
-import type { CreateUserDto, UpdateUserDto, UserResponseDto } from '../../../application/dto/user.dto.js';
-import type { CreateUserUseCase } from '../../../application/use-cases/user/create-user.use-case.js';
-import type { DeleteUserUseCase } from '../../../application/use-cases/user/delete-user.use-case.js';
-import type { GetUserByIdUseCase } from '../../../application/use-cases/user/get-user-by-id.use-case.js';
-import type { ListUsersUseCase } from '../../../application/use-cases/user/list-users.use-case.js';
-import type { UpdateUserUseCase } from '../../../application/use-cases/user/update-user.use-case.js';
+import type { LoginResponseDto, LoginUserDto, RegisterUserDto, UpdateProfileDto, UserResponseDto } from '../../../application/dto/user.dto.js';
+import type { DisableAccountUseCase } from '../../../application/use-cases/user/disable-account.use-case.js';
+import type { GetCurrentUserUseCase } from '../../../application/use-cases/user/get-current-user.use-case.js';
+import type { LoginUserUseCase } from '../../../application/use-cases/user/login-user.use-case.js';
+import type { RegisterUserUseCase } from '../../../application/use-cases/user/register-user.use-case.js';
+import type { UpdateProfileUseCase } from '../../../application/use-cases/user/update-profile.use-case.js';
 import type { User } from '../../../domain/entities/user.entity.js';
-import { sendCreated, sendNoContent, sendPaginated, sendSuccess } from '../../../shared/utils/response.js';
+import { sendCreated, sendSuccess } from '../../../shared/utils/response.js';
+import type { AuthenticatedRequest } from '../middlewares/auth.middleware.js';
 
 function toUserResponse(user: User): UserResponseDto {
   return {
     id: user.id,
     email: user.email,
-    name: user.name,
+    displayName: user.displayName,
+    status: user.status,
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
   };
@@ -21,44 +23,45 @@ function toUserResponse(user: User): UserResponseDto {
 
 export class UserController {
   constructor(
-    private readonly createUserUseCase: CreateUserUseCase,
-    private readonly getUserByIdUseCase: GetUserByIdUseCase,
-    private readonly listUsersUseCase: ListUsersUseCase,
-    private readonly updateUserUseCase: UpdateUserUseCase,
-    private readonly deleteUserUseCase: DeleteUserUseCase
+    private readonly registerUserUseCase: RegisterUserUseCase,
+    private readonly loginUserUseCase: LoginUserUseCase,
+    private readonly getCurrentUserUseCase: GetCurrentUserUseCase,
+    private readonly updateProfileUseCase: UpdateProfileUseCase,
+    private readonly disableAccountUseCase: DisableAccountUseCase
   ) {}
 
-  async create(req: Request, res: Response): Promise<void> {
-    const body = req.body as CreateUserDto;
-    const user = await this.createUserUseCase.execute(body);
+  async register(req: Request, res: Response): Promise<void> {
+    const body = req.body as RegisterUserDto;
+    const user = await this.registerUserUseCase.execute(body);
     sendCreated(res, toUserResponse(user));
   }
 
-  async getById(req: Request, res: Response): Promise<void> {
-    const { id } = req.params as { id: string };
-    const user = await this.getUserByIdUseCase.execute(id);
+  async login(req: Request, res: Response): Promise<void> {
+    const body = req.body as LoginUserDto;
+    const result = await this.loginUserUseCase.execute(body);
+    const response: LoginResponseDto = {
+      accessToken: result.accessToken,
+      user: toUserResponse(result.user),
+    };
+    sendSuccess(res, response);
+  }
+
+  async getProfile(req: Request, res: Response): Promise<void> {
+    const { userId } = req as AuthenticatedRequest;
+    const user = await this.getCurrentUserUseCase.execute(userId);
     sendSuccess(res, toUserResponse(user));
   }
 
-  async list(req: Request, res: Response): Promise<void> {
-    const query = req.query as unknown as { page: number; pageSize: number };
-    const result = await this.listUsersUseCase.execute(query);
-    sendPaginated(res, {
-      items: result.users.map(toUserResponse),
-      meta: result.meta,
-    });
-  }
-
-  async update(req: Request, res: Response): Promise<void> {
-    const { id } = req.params as { id: string };
-    const body = req.body as UpdateUserDto;
-    const user = await this.updateUserUseCase.execute(id, body);
+  async updateProfile(req: Request, res: Response): Promise<void> {
+    const { userId } = req as AuthenticatedRequest;
+    const body = req.body as UpdateProfileDto;
+    const user = await this.updateProfileUseCase.execute(userId, body);
     sendSuccess(res, toUserResponse(user));
   }
 
-  async delete(req: Request, res: Response): Promise<void> {
-    const { id } = req.params as { id: string };
-    await this.deleteUserUseCase.execute(id);
-    sendNoContent(res);
+  async disableAccount(req: Request, res: Response): Promise<void> {
+    const { userId } = req as AuthenticatedRequest;
+    const user = await this.disableAccountUseCase.execute(userId);
+    sendSuccess(res, toUserResponse(user));
   }
 }

@@ -1,13 +1,19 @@
-import type { User as PrismaUser } from '@prisma/client';
+import type { User as PrismaUser, UserStatus as PrismaUserStatus } from '@prisma/client';
 
-import type { User } from '../../domain/entities/user.entity.js';
+import type { User, UserStatus } from '../../domain/entities/user.entity.js';
+
+function mapStatus(status: PrismaUserStatus): UserStatus {
+  return status === 'active' ? 'active' : 'disabled';
+}
 
 export class UserMapper {
   static toDomain(prismaUser: PrismaUser): User {
     return {
       id: prismaUser.id,
       email: prismaUser.email,
-      name: prismaUser.name,
+      passwordHash: prismaUser.passwordHash,
+      displayName: prismaUser.displayName,
+      status: mapStatus(prismaUser.status),
       createdAt: prismaUser.createdAt,
       updatedAt: prismaUser.updatedAt,
     };

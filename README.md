@@ -109,23 +109,42 @@ For file-by-file documentation, see [File Reference](docs/FILE-REFERENCE.md).
 | `npm run prisma:migrate:dev` | Run migrations |
 | `npm run prisma:studio` | Open Prisma GUI |
 
+## API Documentation
+
+Interactive API documentation is available via Swagger UI:
+
+- **Swagger UI:** http://localhost:3000/docs
+- **OpenAPI JSON:** http://localhost:3000/docs.json
+
+Start the dev server (`npm run dev`) and open the Swagger UI to explore and test all endpoints.
+
 ## API Endpoints
 
 ```
-GET    /api/health         # Health check
-POST   /api/users          # Create user
-GET    /api/users          # List users (paginated)
-GET    /api/users/:id      # Get user
-PATCH  /api/users/:id      # Update user
-DELETE /api/users/:id      # Delete user
+GET    /api/health              # Health check
+POST   /api/users/register      # Register new user
+POST   /api/users/login         # Login (returns JWT)
+GET    /api/users/me            # Get current user (auth required)
+PATCH  /api/users/me            # Update profile (auth required)
+POST   /api/users/me/disable    # Disable account (auth required)
 ```
 
-### Example Request
+### Example: Register & Login
 
 ```bash
-curl -X POST http://localhost:3000/api/users \
+# Register
+curl -X POST http://localhost:3000/api/users/register \
   -H "Content-Type: application/json" \
-  -d '{"email": "john@example.com", "name": "John Doe"}'
+  -d '{"email": "john@example.com", "password": "password123", "displayName": "John Doe"}'
+
+# Login
+curl -X POST http://localhost:3000/api/users/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "john@example.com", "password": "password123"}'
+
+# Get profile (use token from login response)
+curl http://localhost:3000/api/users/me \
+  -H "Authorization: Bearer <your-jwt-token>"
 ```
 
 ### Response Format
@@ -133,8 +152,7 @@ curl -X POST http://localhost:3000/api/users \
 ```json
 {
   "success": true,
-  "data": { "id": "...", "email": "...", "name": "..." },
-  "meta": { "page": 1, "pageSize": 20, "totalCount": 100, "totalPages": 5 }
+  "data": { "id": "...", "email": "...", "displayName": "..." }
 }
 ```
 

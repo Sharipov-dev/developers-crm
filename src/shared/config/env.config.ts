@@ -11,6 +11,8 @@ const envSchema = z.object({
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   DEFAULT_PAGE_SIZE: z.coerce.number().int().positive().default(20),
   MAX_PAGE_SIZE: z.coerce.number().int().positive().default(100),
+  JWT_SECRET: z.string().min(1, 'JWT_SECRET is required'),
+  JWT_EXPIRES_IN: z.string().default('24h'),
 });
 
 type EnvConfig = z.infer<typeof envSchema>;
