@@ -1,0 +1,46 @@
+# =============================================================================
+# Docker Compose - Development Overrides
+# =============================================================================
+# This file is automatically loaded with docker-compose.yml in development.
+# It exposes ports and adds development-specific settings.
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL - Development Settings
+  # ---------------------------------------------------------------------------
+  postgres:
+    ports:
+      # Expose to host for local development tools (Prisma, DBeaver, etc.)
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      # Enable logging for debugging
+      POSTGRES_LOG_STATEMENT: "all"
+    # Mount for easier debugging (optional - remove in production)
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL - Test Database (Isolated for testing)
+  # ---------------------------------------------------------------------------
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-myapp}-postgres-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-myapp}_test
+    ports:
+      - "${POSTGRES_TEST_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - backend
+    # No persistent volume - test data is ephemeral
+    tmpfs:
+      - /var/lib/postgresql/data

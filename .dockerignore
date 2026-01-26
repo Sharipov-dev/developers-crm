@@ -1,0 +1,68 @@
+# =============================================================================
+# Docker Ignore File
+# =============================================================================
+# Files and directories to exclude from Docker build context.
+# This speeds up builds and reduces image size.
+# =============================================================================
+
+# Dependencies (will be installed fresh in container)
+node_modules
+
+# Build output (will be built fresh in container)
+dist
+
+# Git
+.git
+.gitignore
+
+# IDE and editor files
+.idea
+.vscode
+*.swp
+*.swo
+.DS_Store
+
+# Environment files (use Docker secrets or env vars instead)
+.env
+.env.*
+!.env.example
+
+# Documentation (not needed in production)
+docs
+*.md
+!README.md
+
+# Tests (not needed in production image)
+tests
+coverage
+*.test.ts
+*.spec.ts
+vitest.config.ts
+tsconfig.test.json
+
+# Development files
+.eslintrc.cjs
+.prettierrc
+.prettierignore
+.editorconfig
+CLAUDE.md
+CONTRIBUTING.md
+
+# Docker files (don't include in context)
+Dockerfile
+docker-compose*.yml
+docker
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+.cache
+
+# SQLite database (for local dev only)
+*.db
+*.db-journal
