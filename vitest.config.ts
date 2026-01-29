@@ -21,6 +21,8 @@ export default defineConfig({
       HOST: '0.0.0.0',
       DEFAULT_PAGE_SIZE: '20',
       MAX_PAGE_SIZE: '100',
+      JWT_SECRET: 'test-jwt-secret-for-testing-only',
+      JWT_EXPIRES_IN: '24h',
     },
   },
   resolve: {
