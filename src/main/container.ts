@@ -36,8 +36,8 @@ import { BcryptPasswordService } from '../infrastructure/services/password.servi
 import { CompanyController } from '../interfaces/http/controllers/company.controller.js';
 import { ContactController } from '../interfaces/http/controllers/contact.controller.js';
 import { DealController } from '../interfaces/http/controllers/deal.controller.js';
-import { InteractionController } from '../interfaces/http/controllers/interaction.controller.js';
 import { HealthController } from '../interfaces/http/controllers/health.controller.js';
+import { InteractionController } from '../interfaces/http/controllers/interaction.controller.js';
 import { UserController } from '../interfaces/http/controllers/user.controller.js';
 import { createAuthMiddleware } from '../interfaces/http/middlewares/auth.middleware.js';
 import type { Controllers, Middlewares } from '../interfaces/http/routes/router.js';
