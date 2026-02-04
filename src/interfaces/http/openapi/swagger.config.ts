@@ -24,6 +24,8 @@ const options: swaggerJsdoc.Options = {
       { name: 'Users', description: 'User authentication and profile management' },
       { name: 'Companies', description: 'Company management endpoints' },
       { name: 'Contacts', description: 'Contact management endpoints' },
+      { name: 'Deals', description: 'Deal pipeline management endpoints' },
+      { name: 'Interactions', description: 'Interaction tracking endpoints' },
     ],
     components: {
       securitySchemes: {
@@ -331,6 +333,281 @@ const options: swaggerJsdoc.Options = {
                 pageSize: { type: 'integer', example: 20 },
                 totalCount: { type: 'integer', example: 45 },
                 totalPages: { type: 'integer', example: 3 },
+              },
+            },
+          },
+        },
+        DealDto: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            userId: { type: 'string', format: 'uuid' },
+            title: { type: 'string', maxLength: 120 },
+            contactId: { type: 'string', format: 'uuid', nullable: true },
+            companyId: { type: 'string', format: 'uuid', nullable: true },
+            stage: {
+              type: 'string',
+              enum: ['lead', 'discovery', 'proposal', 'negotiation', 'won', 'lost'],
+            },
+            valueCents: { type: 'integer', nullable: true, minimum: 0 },
+            currency: { type: 'string', pattern: '^[A-Z]{3}$', example: 'CAD' },
+            probability: { type: 'integer', nullable: true, minimum: 0, maximum: 100 },
+            expectedCloseDate: { type: 'string', format: 'date-time', nullable: true },
+            lostReason: { type: 'string', nullable: true, maxLength: 300 },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+          },
+          required: ['id', 'userId', 'title', 'stage', 'currency', 'createdAt', 'updatedAt'],
+        },
+        DealCreateRequest: {
+          type: 'object',
+          required: ['title'],
+          properties: {
+            title: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 120,
+              description: 'Deal title',
+            },
+            contactId: {
+              type: 'string',
+              format: 'uuid',
+              description: 'Contact ID (must belong to the authenticated user)',
+            },
+            companyId: {
+              type: 'string',
+              format: 'uuid',
+              description: 'Company ID (must belong to the authenticated user)',
+            },
+            stage: {
+              type: 'string',
+              enum: ['lead', 'discovery', 'proposal', 'negotiation', 'won', 'lost'],
+              default: 'lead',
+              description: 'Deal stage in the pipeline',
+            },
+            valueCents: {
+              type: 'integer',
+              minimum: 0,
+              description: 'Deal value in cents',
+            },
+            currency: {
+              type: 'string',
+              pattern: '^[A-Z]{3}$',
+              default: 'CAD',
+              description: '3-letter currency code (e.g., CAD, USD)',
+            },
+            probability: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 100,
+              description: 'Win probability percentage (0-100)',
+            },
+            expectedCloseDate: {
+              type: 'string',
+              format: 'date',
+              description: 'Expected close date',
+            },
+          },
+        },
+        DealUpdateRequest: {
+          type: 'object',
+          properties: {
+            title: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 120,
+              description: 'Deal title',
+            },
+            contactId: {
+              type: 'string',
+              format: 'uuid',
+              nullable: true,
+              description: 'Contact ID (set to null to remove association)',
+            },
+            companyId: {
+              type: 'string',
+              format: 'uuid',
+              nullable: true,
+              description: 'Company ID (set to null to remove association)',
+            },
+            stage: {
+              type: 'string',
+              enum: ['lead', 'discovery', 'proposal', 'negotiation', 'won', 'lost'],
+              description: 'Deal stage in the pipeline',
+            },
+            valueCents: {
+              type: 'integer',
+              minimum: 0,
+              nullable: true,
+              description: 'Deal value in cents (set to null to clear)',
+            },
+            currency: {
+              type: 'string',
+              pattern: '^[A-Z]{3}$',
+              description: '3-letter currency code (e.g., CAD, USD)',
+            },
+            probability: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 100,
+              nullable: true,
+              description: 'Win probability percentage (set to null to clear)',
+            },
+            expectedCloseDate: {
+              type: 'string',
+              format: 'date',
+              nullable: true,
+              description: 'Expected close date (set to null to clear)',
+            },
+            lostReason: {
+              type: 'string',
+              maxLength: 300,
+              nullable: true,
+              description: 'Reason the deal was lost (set to null to clear)',
+            },
+          },
+        },
+        MarkLostRequest: {
+          type: 'object',
+          required: ['lostReason'],
+          properties: {
+            lostReason: {
+              type: 'string',
+              minLength: 3,
+              maxLength: 300,
+              description: 'Reason the deal was lost',
+            },
+          },
+        },
+        PaginatedDealsResponse: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: true },
+            data: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/DealDto' },
+            },
+            meta: {
+              type: 'object',
+              properties: {
+                page: { type: 'integer', example: 1 },
+                pageSize: { type: 'integer', example: 20 },
+                totalCount: { type: 'integer', example: 12 },
+                totalPages: { type: 'integer', example: 1 },
+              },
+            },
+          },
+        },
+        InteractionDto: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            userId: { type: 'string', format: 'uuid' },
+            type: {
+              type: 'string',
+              enum: ['call', 'meeting', 'email', 'message', 'demo', 'note'],
+            },
+            occurredAt: { type: 'string', format: 'date-time' },
+            summary: { type: 'string', maxLength: 2000 },
+            contactId: { type: 'string', format: 'uuid', nullable: true },
+            companyId: { type: 'string', format: 'uuid', nullable: true },
+            dealId: { type: 'string', format: 'uuid', nullable: true },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+          },
+          required: ['id', 'userId', 'type', 'occurredAt', 'summary', 'createdAt', 'updatedAt'],
+        },
+        InteractionCreateRequest: {
+          type: 'object',
+          required: ['type', 'occurredAt', 'summary'],
+          properties: {
+            type: {
+              type: 'string',
+              enum: ['call', 'meeting', 'email', 'message', 'demo', 'note'],
+              description: 'Type of interaction',
+            },
+            occurredAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'When the interaction occurred',
+            },
+            summary: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 2000,
+              description: 'Summary of the interaction',
+            },
+            contactId: {
+              type: 'string',
+              format: 'uuid',
+              description: 'Contact ID (must belong to the authenticated user)',
+            },
+            companyId: {
+              type: 'string',
+              format: 'uuid',
+              description: 'Company ID (must belong to the authenticated user)',
+            },
+            dealId: {
+              type: 'string',
+              format: 'uuid',
+              description: 'Deal ID (must belong to the authenticated user)',
+            },
+          },
+        },
+        InteractionUpdateRequest: {
+          type: 'object',
+          properties: {
+            type: {
+              type: 'string',
+              enum: ['call', 'meeting', 'email', 'message', 'demo', 'note'],
+              description: 'Type of interaction',
+            },
+            occurredAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'When the interaction occurred',
+            },
+            summary: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 2000,
+              description: 'Summary of the interaction',
+            },
+            contactId: {
+              type: 'string',
+              format: 'uuid',
+              nullable: true,
+              description: 'Contact ID (set to null to remove association)',
+            },
+            companyId: {
+              type: 'string',
+              format: 'uuid',
+              nullable: true,
+              description: 'Company ID (set to null to remove association)',
+            },
+            dealId: {
+              type: 'string',
+              format: 'uuid',
+              nullable: true,
+              description: 'Deal ID (set to null to remove association)',
+            },
+          },
+        },
+        PaginatedInteractionsResponse: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: true },
+            data: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/InteractionDto' },
+            },
+            meta: {
+              type: 'object',
+              properties: {
+                page: { type: 'integer', example: 1 },
+                pageSize: { type: 'integer', example: 20 },
+                totalCount: { type: 'integer', example: 5 },
+                totalPages: { type: 'integer', example: 1 },
               },
             },
           },

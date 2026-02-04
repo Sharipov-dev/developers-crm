@@ -24,8 +24,10 @@ model User {
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
 
-  companies Company[]
-  contacts  Contact[]
+  companies    Company[]
+  contacts     Contact[]
+  deals        Deal[]
+  interactions Interaction[]
 
   @@map("users")
 }
@@ -49,8 +51,10 @@ model Company {
   createdAt DateTime     @default(now()) @map("created_at")
   updatedAt DateTime     @updatedAt @map("updated_at")
 
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  contacts Contact[]
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contacts     Contact[]
+  deals        Deal[]
+  interactions Interaction[]
 
   @@unique([userId, name], map: "companies_user_id_name_unique")
   @@index([userId], map: "companies_user_id_idx")
@@ -90,12 +94,82 @@ model Contact {
   createdAt       DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company      Company?      @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  deals        Deal[]
+  interactions Interaction[]
 
   @@unique([userId, email], map: "contacts_user_id_email_unique")
   @@index([userId], map: "contacts_user_id_idx")
   @@index([companyId], map: "contacts_company_id_idx")
   @@index([status], map: "contacts_status_idx")
   @@map("contacts")
+}
+
+enum DealStage {
+  lead
+  discovery
+  proposal
+  negotiation
+  won
+  lost
+}
+
+model Deal {
+  id                String     @id @default(uuid())
+  userId            String     @map("user_id")
+  title             String     @db.VarChar(120)
+  contactId         String?    @map("contact_id")
+  companyId         String?    @map("company_id")
+  stage             DealStage  @default(lead)
+  valueCents        Int?       @map("value_cents")
+  currency          String     @default("CAD") @db.VarChar(3)
+  probability       Int?
+  expectedCloseDate DateTime?  @map("expected_close_date") @db.Date
+  lostReason        String?    @map("lost_reason") @db.VarChar(300)
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  interactions Interaction[]
+
+  @@index([userId], map: "deals_user_id_idx")
+  @@index([contactId], map: "deals_contact_id_idx")
+  @@index([companyId], map: "deals_company_id_idx")
+  @@map("deals")
+}
+
+enum InteractionType {
+  call
+  meeting
+  email
+  message
+  demo
+  note
+}
+
+model Interaction {
+  id         String          @id @default(uuid())
+  userId     String          @map("user_id")
+  type       InteractionType
+  occurredAt DateTime        @map("occurred_at")
+  summary    String          @db.VarChar(2000)
+  contactId  String?         @map("contact_id")
+  companyId  String?         @map("company_id")
+  dealId     String?         @map("deal_id")
+  createdAt  DateTime        @default(now()) @map("created_at")
+  updatedAt  DateTime        @updatedAt @map("updated_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  deal    Deal?    @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
+  @@index([userId], map: "interactions_user_id_idx")
+  @@index([contactId], map: "interactions_contact_id_idx")
+  @@index([dealId], map: "interactions_deal_id_idx")
+  @@map("interactions")
 }
