@@ -20,6 +20,13 @@ import { DeleteInteractionUseCase } from '../application/use-cases/interaction/d
 import { GetInteractionUseCase } from '../application/use-cases/interaction/get-interaction.use-case.js';
 import { ListInteractionsUseCase } from '../application/use-cases/interaction/list-interactions.use-case.js';
 import { UpdateInteractionUseCase } from '../application/use-cases/interaction/update-interaction.use-case.js';
+import { CompleteTaskUseCase } from '../application/use-cases/task/complete-task.use-case.js';
+import { CreateTaskUseCase } from '../application/use-cases/task/create-task.use-case.js';
+import { DeleteTaskUseCase } from '../application/use-cases/task/delete-task.use-case.js';
+import { GetTaskUseCase } from '../application/use-cases/task/get-task.use-case.js';
+import { ListTasksUseCase } from '../application/use-cases/task/list-tasks.use-case.js';
+import { ReopenTaskUseCase } from '../application/use-cases/task/reopen-task.use-case.js';
+import { UpdateTaskUseCase } from '../application/use-cases/task/update-task.use-case.js';
 import { DisableAccountUseCase } from '../application/use-cases/user/disable-account.use-case.js';
 import { GetCurrentUserUseCase } from '../application/use-cases/user/get-current-user.use-case.js';
 import { LoginUserUseCase } from '../application/use-cases/user/login-user.use-case.js';
@@ -30,6 +37,7 @@ import { PrismaCompanyRepository } from '../infrastructure/repositories/prisma-c
 import { PrismaContactRepository } from '../infrastructure/repositories/prisma-contact.repository.js';
 import { PrismaDealRepository } from '../infrastructure/repositories/prisma-deal.repository.js';
 import { PrismaInteractionRepository } from '../infrastructure/repositories/prisma-interaction.repository.js';
+import { PrismaTaskRepository } from '../infrastructure/repositories/prisma-task.repository.js';
 import { PrismaUserRepository } from '../infrastructure/repositories/prisma-user.repository.js';
 import { JwtTokenService } from '../infrastructure/services/jwt.service.js';
 import { BcryptPasswordService } from '../infrastructure/services/password.service.js';
@@ -38,6 +46,7 @@ import { ContactController } from '../interfaces/http/controllers/contact.contro
 import { DealController } from '../interfaces/http/controllers/deal.controller.js';
 import { HealthController } from '../interfaces/http/controllers/health.controller.js';
 import { InteractionController } from '../interfaces/http/controllers/interaction.controller.js';
+import { TaskController } from '../interfaces/http/controllers/task.controller.js';
 import { UserController } from '../interfaces/http/controllers/user.controller.js';
 import { createAuthMiddleware } from '../interfaces/http/middlewares/auth.middleware.js';
 import type { Controllers, Middlewares } from '../interfaces/http/routes/router.js';
@@ -53,6 +62,7 @@ const companyRepository = new PrismaCompanyRepository(prisma);
 const contactRepository = new PrismaContactRepository(prisma);
 const dealRepository = new PrismaDealRepository(prisma);
 const interactionRepository = new PrismaInteractionRepository(prisma);
+const taskRepository = new PrismaTaskRepository(prisma);
 
 // Use Cases - User
 const registerUserUseCase = new RegisterUserUseCase(userRepository, passwordService);
@@ -90,6 +100,15 @@ const getInteractionUseCase = new GetInteractionUseCase(interactionRepository);
 const listInteractionsUseCase = new ListInteractionsUseCase(interactionRepository);
 const updateInteractionUseCase = new UpdateInteractionUseCase(interactionRepository, contactRepository, companyRepository, dealRepository);
 const deleteInteractionUseCase = new DeleteInteractionUseCase(interactionRepository);
+
+// Use Cases - Task
+const createTaskUseCase = new CreateTaskUseCase(taskRepository, contactRepository, companyRepository, dealRepository);
+const getTaskUseCase = new GetTaskUseCase(taskRepository);
+const listTasksUseCase = new ListTasksUseCase(taskRepository);
+const updateTaskUseCase = new UpdateTaskUseCase(taskRepository, contactRepository, companyRepository, dealRepository);
+const deleteTaskUseCase = new DeleteTaskUseCase(taskRepository);
+const completeTaskUseCase = new CompleteTaskUseCase(taskRepository);
+const reopenTaskUseCase = new ReopenTaskUseCase(taskRepository);
 
 // Controllers
 const healthController = new HealthController();
@@ -130,6 +149,15 @@ const interactionController = new InteractionController(
   updateInteractionUseCase,
   deleteInteractionUseCase
 );
+const taskController = new TaskController(
+  createTaskUseCase,
+  getTaskUseCase,
+  listTasksUseCase,
+  updateTaskUseCase,
+  deleteTaskUseCase,
+  completeTaskUseCase,
+  reopenTaskUseCase
+);
 
 // Middlewares
 const authMiddleware = createAuthMiddleware(jwtService);
@@ -141,6 +169,7 @@ export const controllers: Controllers = {
   contactController,
   dealController,
   interactionController,
+  taskController,
 };
 
 export const middlewares: Middlewares = {
@@ -153,6 +182,7 @@ export const repositories = {
   contactRepository,
   dealRepository,
   interactionRepository,
+  taskRepository,
 };
 
 export const services = {
@@ -188,4 +218,11 @@ export const useCases = {
   listInteractionsUseCase,
   updateInteractionUseCase,
   deleteInteractionUseCase,
+  createTaskUseCase,
+  getTaskUseCase,
+  listTasksUseCase,
+  updateTaskUseCase,
+  deleteTaskUseCase,
+  completeTaskUseCase,
+  reopenTaskUseCase,
 };
