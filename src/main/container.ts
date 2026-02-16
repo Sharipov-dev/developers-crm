@@ -27,49 +27,35 @@ import { GetTaskUseCase } from '../application/use-cases/task/get-task.use-case.
 import { ListTasksUseCase } from '../application/use-cases/task/list-tasks.use-case.js';
 import { ReopenTaskUseCase } from '../application/use-cases/task/reopen-task.use-case.js';
 import { UpdateTaskUseCase } from '../application/use-cases/task/update-task.use-case.js';
-import { DisableAccountUseCase } from '../application/use-cases/user/disable-account.use-case.js';
-import { GetCurrentUserUseCase } from '../application/use-cases/user/get-current-user.use-case.js';
-import { LoginUserUseCase } from '../application/use-cases/user/login-user.use-case.js';
-import { RegisterUserUseCase } from '../application/use-cases/user/register-user.use-case.js';
-import { UpdateProfileUseCase } from '../application/use-cases/user/update-profile.use-case.js';
 import { prisma } from '../infrastructure/db/prisma.client.js';
 import { PrismaCompanyRepository } from '../infrastructure/repositories/prisma-company.repository.js';
 import { PrismaContactRepository } from '../infrastructure/repositories/prisma-contact.repository.js';
 import { PrismaDealRepository } from '../infrastructure/repositories/prisma-deal.repository.js';
 import { PrismaInteractionRepository } from '../infrastructure/repositories/prisma-interaction.repository.js';
 import { PrismaTaskRepository } from '../infrastructure/repositories/prisma-task.repository.js';
-import { PrismaUserRepository } from '../infrastructure/repositories/prisma-user.repository.js';
-import { JwtTokenService } from '../infrastructure/services/jwt.service.js';
-import { BcryptPasswordService } from '../infrastructure/services/password.service.js';
+import { SupabaseJwtService } from '../infrastructure/services/supabase-jwt.service.js';
 import { CompanyController } from '../interfaces/http/controllers/company.controller.js';
 import { ContactController } from '../interfaces/http/controllers/contact.controller.js';
 import { DealController } from '../interfaces/http/controllers/deal.controller.js';
 import { HealthController } from '../interfaces/http/controllers/health.controller.js';
 import { InteractionController } from '../interfaces/http/controllers/interaction.controller.js';
 import { TaskController } from '../interfaces/http/controllers/task.controller.js';
-import { UserController } from '../interfaces/http/controllers/user.controller.js';
 import { createAuthMiddleware } from '../interfaces/http/middlewares/auth.middleware.js';
 import type { Controllers, Middlewares } from '../interfaces/http/routes/router.js';
 import { env } from '../shared/config/env.config.js';
 
 // Services
-const passwordService = new BcryptPasswordService();
-const jwtService = new JwtTokenService(env.JWT_SECRET, env.JWT_EXPIRES_IN);
+const jwtService = new SupabaseJwtService(
+  `${env.SUPABASE_URL}/auth/v1/.well-known/jwks.json`,
+  `${env.SUPABASE_URL}/auth/v1`
+);
 
 // Repositories
-const userRepository = new PrismaUserRepository(prisma);
 const companyRepository = new PrismaCompanyRepository(prisma);
 const contactRepository = new PrismaContactRepository(prisma);
 const dealRepository = new PrismaDealRepository(prisma);
 const interactionRepository = new PrismaInteractionRepository(prisma);
 const taskRepository = new PrismaTaskRepository(prisma);
-
-// Use Cases - User
-const registerUserUseCase = new RegisterUserUseCase(userRepository, passwordService);
-const loginUserUseCase = new LoginUserUseCase(userRepository, passwordService, jwtService);
-const getCurrentUserUseCase = new GetCurrentUserUseCase(userRepository);
-const updateProfileUseCase = new UpdateProfileUseCase(userRepository);
-const disableAccountUseCase = new DisableAccountUseCase(userRepository);
 
 // Use Cases - Company
 const createCompanyUseCase = new CreateCompanyUseCase(companyRepository);
@@ -112,13 +98,6 @@ const reopenTaskUseCase = new ReopenTaskUseCase(taskRepository);
 
 // Controllers
 const healthController = new HealthController();
-const userController = new UserController(
-  registerUserUseCase,
-  loginUserUseCase,
-  getCurrentUserUseCase,
-  updateProfileUseCase,
-  disableAccountUseCase
-);
 const companyController = new CompanyController(
   createCompanyUseCase,
   getCompanyUseCase,
@@ -164,7 +143,6 @@ const authMiddleware = createAuthMiddleware(jwtService);
 
 export const controllers: Controllers = {
   healthController,
-  userController,
   companyController,
   contactController,
   dealController,
@@ -177,7 +155,6 @@ export const middlewares: Middlewares = {
 };
 
 export const repositories = {
-  userRepository,
   companyRepository,
   contactRepository,
   dealRepository,
@@ -186,16 +163,10 @@ export const repositories = {
 };
 
 export const services = {
-  passwordService,
   jwtService,
 };
 
 export const useCases = {
-  registerUserUseCase,
-  loginUserUseCase,
-  getCurrentUserUseCase,
-  updateProfileUseCase,
-  disableAccountUseCase,
   createCompanyUseCase,
   getCompanyUseCase,
   listCompaniesUseCase,

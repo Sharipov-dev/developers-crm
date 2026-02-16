@@ -21,7 +21,6 @@ const options: swaggerJsdoc.Options = {
     ],
     tags: [
       { name: 'Health', description: 'Health check endpoints' },
-      { name: 'Users', description: 'User authentication and profile management' },
       { name: 'Companies', description: 'Company management endpoints' },
       { name: 'Contacts', description: 'Contact management endpoints' },
       { name: 'Deals', description: 'Deal pipeline management endpoints' },

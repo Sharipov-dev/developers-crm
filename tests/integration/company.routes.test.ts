@@ -18,23 +18,15 @@ vi.mock('../../src/infrastructure/db/prisma.client.js', () => ({
       update: vi.fn(),
       delete: vi.fn(),
     },
-    user: {
-      findUnique: vi.fn(),
-      findFirst: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      count: vi.fn(),
-    },
     $connect: vi.fn(),
     $disconnect: vi.fn(),
   },
 }));
 
-// Mock JWT service to always return a valid userId
-vi.mock('../../src/infrastructure/services/jwt.service.js', () => ({
-  JwtTokenService: vi.fn().mockImplementation(() => ({
-    sign: vi.fn().mockReturnValue('mock-token'),
-    verify: vi.fn().mockReturnValue({ userId: 'user-123' }),
+// Mock Supabase JWT service to always return a valid userId
+vi.mock('../../src/infrastructure/services/supabase-jwt.service.js', () => ({
+  SupabaseJwtService: vi.fn().mockImplementation(() => ({
+    verify: vi.fn().mockResolvedValue({ userId: 'user-123' }),
   })),
 }));
 
@@ -61,19 +53,6 @@ describe('Company Routes Integration Tests', () => {
   };
 
   beforeAll(async () => {
-    const { prisma } = await import('../../src/infrastructure/db/prisma.client.js');
-
-    // Setup mocked prisma responses
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
-      id: mockUserId,
-      email: 'test@example.com',
-      passwordHash: 'hashed',
-      displayName: 'Test User',
-      status: 'active',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
     app = createApp(controllers, middlewares);
   });
 
