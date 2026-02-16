@@ -3,6 +3,5 @@ export interface JwtPayload {
 }
 
 export interface JwtService {
-  sign(payload: JwtPayload): string;
-  verify(token: string): JwtPayload;
+  verify(token: string): Promise<JwtPayload>;
 }
