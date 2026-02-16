@@ -6,6 +6,7 @@ import type { ContactController } from '../controllers/contact.controller.js';
 import type { DealController } from '../controllers/deal.controller.js';
 import type { HealthController } from '../controllers/health.controller.js';
 import type { InteractionController } from '../controllers/interaction.controller.js';
+import type { TaskController } from '../controllers/task.controller.js';
 import type { UserController } from '../controllers/user.controller.js';
 
 import { createCompanyRoutes } from './company.routes.js';
@@ -13,6 +14,7 @@ import { createContactRoutes } from './contact.routes.js';
 import { createDealRoutes } from './deal.routes.js';
 import { createHealthRoutes } from './health.routes.js';
 import { createInteractionRoutes } from './interaction.routes.js';
+import { createTaskRoutes } from './task.routes.js';
 import { createUserRoutes } from './user.routes.js';
 
 export interface Controllers {
@@ -22,6 +24,7 @@ export interface Controllers {
   contactController: ContactController;
   dealController: DealController;
   interactionController: InteractionController;
+  taskController: TaskController;
 }
 
 export interface Middlewares {
@@ -37,6 +40,7 @@ export function createAppRouter(controllers: Controllers, middlewares: Middlewar
   router.use('/contacts', createContactRoutes(controllers.contactController, middlewares.authMiddleware));
   router.use('/deals', createDealRoutes(controllers.dealController, middlewares.authMiddleware));
   router.use('/interactions', createInteractionRoutes(controllers.interactionController, middlewares.authMiddleware));
+  router.use('/tasks', createTaskRoutes(controllers.taskController, middlewares.authMiddleware));
 
   return router;
 }
