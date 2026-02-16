@@ -28,15 +28,16 @@ model User {
   contacts     Contact[]
   deals        Deal[]
   interactions Interaction[]
+  tasks        Task[]
 
   @@map("users")
 }
 
 enum CompanySize {
   solo
-  size_1_10   @map("1-10")
-  size_11_50  @map("11-50")
-  size_51_200 @map("51-200")
+  size_1_10     @map("1-10")
+  size_11_50    @map("11-50")
+  size_51_200   @map("51-200")
   size_200_plus @map("200+")
 }
 
@@ -55,6 +56,7 @@ model Company {
   contacts     Contact[]
   deals        Deal[]
   interactions Interaction[]
+  tasks        Task[]
 
   @@unique([userId, name], map: "companies_user_id_name_unique")
   @@index([userId], map: "companies_user_id_idx")
@@ -98,6 +100,7 @@ model Contact {
   company      Company?      @relation(fields: [companyId], references: [id], onDelete: SetNull)
   deals        Deal[]
   interactions Interaction[]
+  tasks        Task[]
 
   @@unique([userId, email], map: "contacts_user_id_email_unique")
   @@index([userId], map: "contacts_user_id_idx")
@@ -116,25 +119,26 @@ enum DealStage {
 }
 
 model Deal {
-  id                String     @id @default(uuid())
-  userId            String     @map("user_id")
-  title             String     @db.VarChar(120)
-  contactId         String?    @map("contact_id")
-  companyId         String?    @map("company_id")
-  stage             DealStage  @default(lead)
-  valueCents        Int?       @map("value_cents")
-  currency          String     @default("CAD") @db.VarChar(3)
+  id                String    @id @default(uuid())
+  userId            String    @map("user_id")
+  title             String    @db.VarChar(120)
+  contactId         String?   @map("contact_id")
+  companyId         String?   @map("company_id")
+  stage             DealStage @default(lead)
+  valueCents        Int?      @map("value_cents")
+  currency          String    @default("CAD") @db.VarChar(3)
   probability       Int?
-  expectedCloseDate DateTime?  @map("expected_close_date") @db.Date
-  lostReason        String?    @map("lost_reason") @db.VarChar(300)
-  createdAt         DateTime   @default(now()) @map("created_at")
-  updatedAt         DateTime   @updatedAt @map("updated_at")
+  expectedCloseDate DateTime? @map("expected_close_date") @db.Date
+  lostReason        String?   @map("lost_reason") @db.VarChar(300)
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
 
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   contact Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
   company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
 
   interactions Interaction[]
+  tasks        Task[]
 
   @@index([userId], map: "deals_user_id_idx")
   @@index([contactId], map: "deals_contact_id_idx")
@@ -172,4 +176,42 @@ model Interaction {
   @@index([contactId], map: "interactions_contact_id_idx")
   @@index([dealId], map: "interactions_deal_id_idx")
   @@map("interactions")
+}
+
+enum TaskStatus {
+  open
+  done
+  canceled
+}
+
+enum TaskPriority {
+  low
+  medium
+  high
+}
+
+model Task {
+  id          String       @id @default(uuid())
+  userId      String       @map("user_id")
+  title       String       @db.VarChar(160)
+  description String?      @db.VarChar(2000)
+  dueAt       DateTime?    @map("due_at")
+  status      TaskStatus   @default(open)
+  priority    TaskPriority @default(medium)
+  contactId   String?      @map("contact_id")
+  companyId   String?      @map("company_id")
+  dealId      String?      @map("deal_id")
+  completedAt DateTime?    @map("completed_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  deal    Deal?    @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
+  @@index([userId], map: "tasks_user_id_idx")
+  @@index([contactId], map: "tasks_contact_id_idx")
+  @@index([dealId], map: "tasks_deal_id_idx")
+  @@map("tasks")
 }

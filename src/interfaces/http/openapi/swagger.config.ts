@@ -26,6 +26,7 @@ const options: swaggerJsdoc.Options = {
       { name: 'Contacts', description: 'Contact management endpoints' },
       { name: 'Deals', description: 'Deal pipeline management endpoints' },
       { name: 'Interactions', description: 'Interaction tracking endpoints' },
+      { name: 'Tasks', description: 'Task management endpoints' },
     ],
     components: {
       securitySchemes: {
@@ -607,6 +608,144 @@ const options: swaggerJsdoc.Options = {
                 page: { type: 'integer', example: 1 },
                 pageSize: { type: 'integer', example: 20 },
                 totalCount: { type: 'integer', example: 5 },
+                totalPages: { type: 'integer', example: 1 },
+              },
+            },
+          },
+        },
+        TaskDto: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            userId: { type: 'string', format: 'uuid' },
+            title: { type: 'string', maxLength: 160 },
+            description: { type: 'string', nullable: true, maxLength: 2000 },
+            dueAt: { type: 'string', format: 'date-time', nullable: true },
+            status: { type: 'string', enum: ['open', 'done', 'canceled'] },
+            priority: { type: 'string', enum: ['low', 'medium', 'high'] },
+            contactId: { type: 'string', format: 'uuid', nullable: true },
+            companyId: { type: 'string', format: 'uuid', nullable: true },
+            dealId: { type: 'string', format: 'uuid', nullable: true },
+            completedAt: { type: 'string', format: 'date-time', nullable: true },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+          },
+          required: ['id', 'userId', 'title', 'status', 'priority', 'createdAt', 'updatedAt'],
+        },
+        TaskCreateRequest: {
+          type: 'object',
+          required: ['title'],
+          properties: {
+            title: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 160,
+              description: 'Task title',
+            },
+            description: {
+              type: 'string',
+              maxLength: 2000,
+              description: 'Task description',
+            },
+            dueAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Due date and time',
+            },
+            status: {
+              type: 'string',
+              enum: ['open', 'done'],
+              default: 'open',
+              description: 'Task status (cannot create with "canceled")',
+            },
+            priority: {
+              type: 'string',
+              enum: ['low', 'medium', 'high'],
+              default: 'medium',
+              description: 'Task priority',
+            },
+            contactId: {
+              type: 'string',
+              format: 'uuid',
+              description: 'Contact ID (must belong to the authenticated user)',
+            },
+            companyId: {
+              type: 'string',
+              format: 'uuid',
+              description: 'Company ID (must belong to the authenticated user)',
+            },
+            dealId: {
+              type: 'string',
+              format: 'uuid',
+              description: 'Deal ID (must belong to the authenticated user)',
+            },
+          },
+        },
+        TaskUpdateRequest: {
+          type: 'object',
+          properties: {
+            title: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 160,
+              description: 'Task title',
+            },
+            description: {
+              type: 'string',
+              maxLength: 2000,
+              nullable: true,
+              description: 'Task description (set to null to clear)',
+            },
+            dueAt: {
+              type: 'string',
+              format: 'date-time',
+              nullable: true,
+              description: 'Due date and time (set to null to clear)',
+            },
+            status: {
+              type: 'string',
+              enum: ['open', 'done', 'canceled'],
+              description: 'Task status. Setting to "done" auto-sets completedAt. Setting to "open" or "canceled" clears completedAt.',
+            },
+            priority: {
+              type: 'string',
+              enum: ['low', 'medium', 'high'],
+              description: 'Task priority',
+            },
+            contactId: {
+              type: 'string',
+              format: 'uuid',
+              nullable: true,
+              description: 'Contact ID (set to null to remove association)',
+            },
+            companyId: {
+              type: 'string',
+              format: 'uuid',
+              nullable: true,
+              description: 'Company ID (set to null to remove association)',
+            },
+            dealId: {
+              type: 'string',
+              format: 'uuid',
+              nullable: true,
+              description: 'Deal ID (set to null to remove association)',
+            },
+          },
+        },
+        PaginatedTasksResponse: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: true },
+            data: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/TaskDto' },
+            },
+            meta: {
+              type: 'object',
+              properties: {
+                page: { type: 'integer', example: 1 },
+                pageSize: { type: 'integer', example: 20 },
+                totalCount: { type: 'integer', example: 8 },
                 totalPages: { type: 'integer', example: 1 },
               },
             },
